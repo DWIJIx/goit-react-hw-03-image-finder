@@ -5,12 +5,15 @@ import { Loader } from 'components/Loader/Loader.jsx';
 import { Button } from 'components/Button/Button.jsx';
 import { GalleryList, GalleryItem } from './ImageGallery.styled';
 import toast from 'react-hot-toast';
+
 export class ImageGallery extends Component {
   state = {
     images: [],
     page: 1,
     error: '',
     status: 'idle',
+    showModal: false,
+    largeImgUrl: '',
   };
 
   componentDidUpdate(prevProps, prevState) {
