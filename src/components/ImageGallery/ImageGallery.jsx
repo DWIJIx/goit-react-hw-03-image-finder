@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import { fetchApi } from '../../services/fetchApi.js';
 import { ImageGalleryItem } from './ImageGalleryItem';
 import { Loader } from 'components/Loader/Loader.jsx';
@@ -9,11 +10,10 @@ import toast from 'react-hot-toast';
 export class ImageGallery extends Component {
   state = {
     images: [],
+    totalHits: '',
     page: 1,
     error: '',
     status: 'idle',
-    showModal: false,
-    largeImgUrl: '',
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -21,14 +21,18 @@ export class ImageGallery extends Component {
       this.setState({ status: 'pending', page: 1, images: [] });
 
       fetchApi(this.props.searchText.trim(), 1)
-        .then(images => {
-          if (images.total === 0) {
+        .then(data => {
+          if (data.total === 0) {
             // console.log(images);
             // console.log('No data');
             this.setState({ status: 'idle' });
             toast.error('Sorry, the requested image was not found');
           } else {
-            this.setState({ images: images.hits, status: 'resolved' });
+            this.setState({
+              images: data.hits,
+              status: 'resolved',
+              totalHits: data.totalHits,
+            });
           }
         })
         .catch(error => {
@@ -39,14 +43,17 @@ export class ImageGallery extends Component {
   }
 
   loadMore = () => {
-    // console.log('Press button');
-    // this.setState({ status: 'pending' });
+    const maxPage = Math.ceil(this.state.totalHits / 12);
+    // Перевірка на максимальну к-сть сторінок і чи є ще картинки
+    if (maxPage < this.state.page + 1) {
+      toast.error('Sorry, no more photos');
+      return;
+    }
     fetchApi(this.props.searchText.trim(), this.state.page + 1)
-      .then(images => {
-        //   console.log(images);
+      .then(data => {
         this.setState(prevState => {
           return {
-            images: [...prevState.images, ...images.hits],
+            images: [...prevState.images, ...data.hits],
             status: 'resolved',
             page: this.state.page + 1,
           };
@@ -59,22 +66,26 @@ export class ImageGallery extends Component {
   };
 
   render() {
-    if (this.state.status === 'pending') {
+    const { images, error, status } = this.state;
+
+    if (status === 'pending') {
       return <Loader />;
     }
-    if (this.state.status === 'rejected') {
+
+    if (status === 'rejected') {
       return (
         <div>
           <h2>Oops, something went wrong</h2>
-          <p>{this.state.error}</p>
+          <p>{error}</p>
         </div>
       );
     }
-    if (this.state.status === 'resolved') {
+
+    if (status === 'resolved') {
       return (
         <>
           <GalleryList>
-            {this.state.images.map(image => {
+            {images.map(image => {
               return (
                 <GalleryItem key={image.id}>
                   <ImageGalleryItem image={image} />
@@ -88,3 +99,7 @@ export class ImageGallery extends Component {
     }
   }
 }
+
+ImageGallery.propTypes = {
+  searchText: PropTypes.string.isRequired,
+};

@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import { Overlay, ModalDiv } from './Modal.styled';
 import { createPortal } from 'react-dom';
 
@@ -14,30 +15,36 @@ export class Modal extends Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
   //   Метод закриття модалки по кліку на ескейп
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
+  handleKeyDown = event => {
+    if (event.code === 'Escape') {
       //   console.log('Find Escape');
       this.props.onClose();
     }
   };
   //   Метод закриття модалки по кліку на бекроп
-  handleBackdropClick = e => {
-    if (e.currentTarget === e.target) {
+  handleBackdropClick = event => {
+    if (event.currentTarget === event.target) {
       this.props.onClose();
     }
   };
 
   render() {
+    const { largeImageURL, tags } = this.props.image;
     return createPortal(
       <Overlay onClick={this.handleBackdropClick}>
         <ModalDiv>
-          <img
-            src={this.props.image.largeImageURL}
-            alt={this.props.image.tags}
-          />
+          <img src={largeImageURL} alt={tags} />
         </ModalDiv>
       </Overlay>,
       modalRoot
     );
   }
 }
+
+Modal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  image: PropTypes.shape({
+    largeImageURL: PropTypes.string.isRequired,
+    tags: PropTypes.string.isRequired,
+  }),
+};
