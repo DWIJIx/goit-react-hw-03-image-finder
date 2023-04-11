@@ -43,12 +43,12 @@ export class ImageGallery extends Component {
   }
 
   loadMore = () => {
-    const maxPage = Math.ceil(this.state.totalHits / 12);
-    // Перевірка на максимальну к-сть сторінок і чи є ще картинки
-    if (maxPage < this.state.page + 1) {
-      toast.error('Sorry, no more photos');
-      return;
-    }
+    // const maxPage = Math.ceil(this.state.totalHits / 12);
+    // // Перевірка на максимальну к-сть сторінок і чи є ще картинки
+    // if (maxPage < this.state.page + 1) {
+    //   toast.error('Sorry, no more photos');
+    //   return;
+    // }
     fetchApi(this.props.searchText.trim(), this.state.page + 1)
       .then(data => {
         this.setState(prevState => {
@@ -66,7 +66,7 @@ export class ImageGallery extends Component {
   };
 
   render() {
-    const { images, error, status } = this.state;
+    const { images, error, status, totalHits } = this.state;
 
     if (status === 'pending') {
       return <Loader />;
@@ -93,7 +93,7 @@ export class ImageGallery extends Component {
               );
             })}
           </GalleryList>
-          <Button onLoadMore={this.loadMore} />
+          {totalHits !== images.length && <Button onLoadMore={this.loadMore} />}
         </>
       );
     }
